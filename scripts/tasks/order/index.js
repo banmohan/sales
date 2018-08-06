@@ -166,3 +166,17 @@ function showOrder(id) {
 };
 
 prepareView(model);
+
+$(document).ready(function () {
+    const btn = $("#ShowButton");
+
+    const select = $("<select id='PrioritySelect'/>");
+    select.append($("<option value='' />").append('Select'));
+    select.append($("<option value='Normal' />").append('Normal'));
+    select.append($("<option value='Low' />").append('Low'));
+    select.append($("<option value='High' />").append('High'));
+
+    $(btn.parent()).before($("<div class='two wide field'/>")
+        .append($("<label />").append('Priority'))
+        .append(select));
+})

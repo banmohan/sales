@@ -35,6 +35,8 @@ namespace MixERP.Sales.DAL.Backend.Tasks
                 sql.And("LOWER(memo) LIKE @0", search.Memo.ToSqlLikeExpression().ToLower());
                 sql.And("LOWER(posted_by) LIKE @0", search.PostedBy.ToSqlLikeExpression().ToLower());
                 sql.And("LOWER(office) LIKE @0", search.Office.ToSqlLikeExpression().ToLower());
+                if (!string.IsNullOrWhiteSpace(search.Priority))
+                    sql.And("LOWER(COALESCE(priority, '')) = @0", search.Priority.ToLower());
 
                 if (search.Amount > 0)
                 {

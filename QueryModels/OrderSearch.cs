@@ -16,5 +16,6 @@ namespace MixERP.Sales.QueryModels
         public string PostedBy { get; set; }
         public string Office { get; set; }
         public decimal Amount { get; set; }
+        public string Priority { get; set; }
     }
 }
