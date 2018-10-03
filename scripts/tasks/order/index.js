@@ -151,7 +151,20 @@
             Text: "Customer",
             Id: "Customer"
         }
-    ]
+    ],
+    onDataChange: function (res) {
+        $.each($("#SearchView tbody tr"), function (ind, itm) {
+            if ($(itm).find("td:eq(17)").html() === 'true') {
+                $(itm).addClass('cancelled');
+            } else {
+                const orderId = parseInt($(itm).find("td:eq(2)").html() || 0);
+                const ff = window.getAjaxRequest(`/dashboard/sales/tasks/order/iscompleted/${orderId}`);
+                ff.success(function (res) {
+                    if (res) $(itm).addClass('completed');
+                })
+            }
+        })
+    }
 };
 
 function showOrder(id) {

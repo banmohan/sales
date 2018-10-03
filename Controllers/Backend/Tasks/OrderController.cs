@@ -151,5 +151,39 @@ namespace MixERP.Sales.Controllers.Backend.Tasks
                 return this.Failed(ex.Message, HttpStatusCode.InternalServerError);
             }
         }
+
+        [Route("dashboard/sales/tasks/order/app-view")]
+        [AccessPolicy("sales", "orders", AccessTypeEnum.Read)]
+        public async Task<ActionResult> AppViewAsync(OrderSearch search)
+        {
+            try
+            {
+                var meta = await AppUsers.GetCurrentAsync().ConfigureAwait(true);
+
+                search.From = search.From == DateTime.MinValue ? DateTime.Today : search.From;
+                search.To = search.To == DateTime.MinValue ? DateTime.Today : search.To;
+                search.ExpectedFrom = search.ExpectedFrom == DateTime.MinValue ? DateTime.Today : search.ExpectedFrom.AddYears(-1);
+                search.ExpectedTo = search.ExpectedTo == DateTime.MinValue ? DateTime.Today : search.ExpectedTo.AddYears(1);
+                search.PostedBy = meta.Name;
+
+                System.Collections.Generic.IEnumerable<OrderSearchView> model = await Orders.GetAppSearchViewAsync(this.Tenant, meta.OfficeId, search).ConfigureAwait(true);
+
+                return this.Ok(model);
+            }
+            catch (Exception ex)
+            {
+                return this.Failed(ex.Message, HttpStatusCode.InternalServerError);
+            }
+        }
+
+        [Route("dashboard/sales/tasks/order/iscompleted/{orderId}")]
+        [MenuPolicy(OverridePath = "/dashboard/sales/tasks/order")]
+        [AccessPolicy("sales", "orders", AccessTypeEnum.Read)]
+        public async Task<ActionResult> IsCompleted(long orderId)
+        {
+            bool result = await Orders.IsCompletedAsync(this.Tenant, orderId).ConfigureAwait(true);
+            return Ok(result);
+        }
+
     }
 }

@@ -34,13 +34,14 @@
           sales.sales.tender,
           sales.sales.change
         FROM sales.sales
+		INNER JOIN finance.transaction_master ON sales.transaction_master_id = transaction_master.transaction_master_id
         INNER JOIN inventory.customers
         ON inventory.customers.customer_id = sales.sales.customer_id
         INNER JOIN account.users
         ON account.users.user_id = sales.sales.salesperson_id
         INNER JOIN sales.price_types
         ON sales.price_types.price_type_id = sales.sales.price_type_id
-        WHERE 1 = 1
+        WHERE transaction_master.verification_status_id > 0
         AND account.users.office_id = @OfficeId
         AND (COALESCE(@CustomerId, 0) = 0 OR sales.sales.customer_id = @CustomerId);
       </Query>
@@ -58,11 +59,12 @@
           inventory.customers.company_name,
           SUM(sales.sales.total_amount) AS total_sales
         FROM sales.sales
+		INNER JOIN finance.transaction_master ON sales.transaction_master_id = transaction_master.transaction_master_id
         INNER JOIN inventory.customers
         ON inventory.customers.customer_id = sales.sales.customer_id
         INNER JOIN account.users
         ON account.users.user_id = sales.sales.salesperson_id
-        WHERE 1 = 1
+        WHERE transaction_master.verification_status_id > 0
         AND account.users.office_id = @OfficeId
         AND (COALESCE(@CustomerId, 0) = 0 OR sales.sales.customer_id = @CustomerId)
         GROUP BY

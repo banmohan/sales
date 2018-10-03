@@ -316,6 +316,11 @@
         function getCheckoutModel() {
             const model = window.getModel();
 
+            const orderId = window.getQueryStringByName("OrderId");
+            const quotationId = window.getQueryStringByName("QuotationId");
+            if (orderId) model.SalesOrderId = orderId;
+            if (quotationId) model.SalesQuotationId = quotationId;
+
             var serialNumberIds = [];
             const rows = $("#CheckoutGrid tbody tr");
             $.each(rows, function () {

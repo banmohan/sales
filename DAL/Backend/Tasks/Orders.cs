@@ -124,5 +124,58 @@ namespace MixERP.Sales.DAL.Backend.Tasks
 
             return awaiter.OrderBy(x => x.ValueDate).ThenBy(x => x.Supplier).ToList();
         }
+
+        public static async Task<List<OrderDetails>> GetOrderDetails(string tenant, long orderId)
+        {
+            var sql = new Sql(@"SELECT items.item_name, units.unit_name, d.price, d.quantity FROM sales.order_details d
+                JOIN inventory.items ON d.item_id = items.item_id JOIN inventory.units ON d.unit_id = units.unit_id");
+            sql.Where("d.order_id=@0", orderId);
+
+            return (await Factory.GetAsync<OrderDetails>(tenant, sql).ConfigureAwait(false)).ToList();
+        }
+
+        public static async Task<IEnumerable<OrderSearchView>> GetAppSearchViewAsync(string tenant, int officeId, OrderSearch search)
+        {
+            using (var db = DbProvider.Get(FrapidDbServer.GetConnectionString(tenant), tenant).GetDatabase())
+            {
+                var sql = new Sql("SELECT * FROM sales.order_search_view");
+                sql.Where("cancelled=0");
+                sql.And("value_date BETWEEN @0 AND @1", search.From, search.To);
+                sql.And("expected_date BETWEEN @0 AND @1", search.ExpectedFrom, search.ExpectedTo);
+                sql.And("CAST(order_id AS national character varying(100)) LIKE @0", search.Id.ToSqlLikeExpression());
+                sql.And("LOWER(reference_number) LIKE @0", search.ReferenceNumber.ToSqlLikeExpression().ToLower());
+                sql.And("LOWER(customer) LIKE @0", search.Customer.ToSqlLikeExpression().ToLower());
+                sql.And("LOWER(terms) LIKE @0", search.Terms.ToSqlLikeExpression().ToLower());
+                sql.And("LOWER(memo) LIKE @0", search.Memo.ToSqlLikeExpression().ToLower());
+                sql.And("LOWER(posted_by) LIKE @0", search.PostedBy.ToSqlLikeExpression().ToLower());
+                sql.And("LOWER(office) LIKE @0", search.Office.ToSqlLikeExpression().ToLower());
+                if (!string.IsNullOrWhiteSpace(search.Priority))
+                    sql.And("LOWER(COALESCE(priority, '')) = @0", search.Priority.ToLower());
+
+                if (search.Amount > 0)
+                {
+                    sql.And("total_amount = @0", search.Amount);
+                }
+
+                sql.And("office_id IN(SELECT * FROM core.get_office_ids(@0))", officeId);
+
+                var data = await db.SelectAsync<OrderSearchView>(sql).ConfigureAwait(false);
+                foreach (var item in data)
+                {
+                    item.IsSold = (await db.ScalarAsync<long>("SELECT sales_id FROM sales.sales WHERE COALESCE(sales_order_id, 0)=@0"
+                        , item.OrderId).ConfigureAwait(false)) > 0;
+                    item.Details = await Orders.GetOrderDetails(tenant, item.OrderId).ConfigureAwait(false);
+                }
+
+                return data;
+            }
+        }
+
+        internal static async Task<bool> IsCompletedAsync(string tenant, long orderId)
+        {
+            var exists = await Factory.ScalarAsync<int>(tenant, new Sql("SELECT top 1 1 FROM sales.sales WHERE sales_order_id=@0", orderId))
+                .ConfigureAwait(false);
+            return exists > 0;
+        }
     }
 }

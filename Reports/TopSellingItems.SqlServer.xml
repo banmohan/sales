@@ -28,7 +28,7 @@
 			FROM
 			(
 				SELECT
-				TOP 10      
+				TOP 1000
 						inventory.verified_checkout_view.item_id, 
 						SUM(quantity) AS quantity,
 						SUM((price * quantity) - COALESCE(discount, 0) + COALESCE(shipping_charge, 0)) AS sales_amount
