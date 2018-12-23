@@ -15,7 +15,52 @@
   <DataSources>
     <DataSource>
       <Query>
-		SELECT * FROM sales.get_account_receivables_report(@OfficeId, @From);
+		SELECT customers.account_id, core.get_office_name_by_office_id(@OfficeId) office,
+			accounts.account_id, accounts.account_number, accounts.account_name, 
+			pt.amount as previous_period, t.amount as current_period, COALESCE(pt.amount, 0) + COALESCE(t.amount, 0) as total
+		FROM inventory.customers
+		JOIN finance.accounts ON customers.account_id = accounts.account_id
+		LEFT JOIN (
+			SELECT 
+				verified_transaction_view.account_id acc_id,
+				SUM
+				(
+					CASE WHEN finance.verified_transaction_view.tran_type = 'Dr' THEN
+					finance.verified_transaction_view.amount_in_local_currency
+					ELSE
+					finance.verified_transaction_view.amount_in_local_currency * -1
+					END                
+				) AS amount
+			FROM finance.verified_transaction_view
+			WHERE finance.verified_transaction_view.value_date &lt; @From
+			AND finance.verified_transaction_view.office_id IN (SELECT * FROM core.get_office_ids(@OfficeId))
+			AND finance.verified_transaction_view.account_id IN
+			(
+				SELECT account_id FROM inventory.customers
+			)
+			GROUP BY verified_transaction_view.account_id
+		) pt ON customers.account_id = pt.acc_id
+		LEFT JOIN (
+			SELECT 
+				verified_transaction_view.account_id acc_id,
+				SUM
+				(
+					CASE WHEN finance.verified_transaction_view.tran_type = 'Dr' THEN
+					finance.verified_transaction_view.amount_in_local_currency
+					ELSE
+					finance.verified_transaction_view.amount_in_local_currency * -1
+					END                
+				) AS amount
+			FROM finance.verified_transaction_view
+			WHERE finance.verified_transaction_view.value_date &gt;= @From
+			AND finance.verified_transaction_view.office_id IN (SELECT * FROM core.get_office_ids(@OfficeId))
+			AND finance.verified_transaction_view.account_id IN
+			(
+				SELECT account_id FROM inventory.customers
+			)
+			GROUP BY verified_transaction_view.account_id
+		) t ON customers.account_id = t.acc_id
+		WHERE COALESCE(t.amount, 0) != 0 OR COALESCE(pt.amount, 0) != 0
       </Query>
       <Parameters>
         <Parameter Name="@From" FieldLabel="From Date" Type="System.DateTime" />

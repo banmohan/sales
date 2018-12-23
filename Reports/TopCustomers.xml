@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<FrapidReport>
+  <Header />
+  <Title>Top Customers</Title>
+  <TopSection>
+  </TopSection>
+  <Body>
+    <GridViews>
+      <GridView>
+        <GridViewDataSource Index="0">
+        </GridViewDataSource>
+      </GridView>
+    </GridViews>
+  </Body>
+  <DataSources>
+    <DataSource>
+      <Query>
+		SELECT t.customer_id, t.customer, customers.email, customers.company_phone_numbers as contact_number, t.amount
+		FROM inventory.top_customers_by_office_view t
+		JOIN inventory.customers ON t.customer_id = customers.customer_id;
+      </Query>
+      <Parameters>
+      </Parameters>
+    </DataSource>
+  </DataSources>
+</FrapidReport>

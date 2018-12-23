@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<FrapidReport>
+  <Header />
+  <Title>Top Suppliers</Title>
+  <TopSection>
+  </TopSection>
+  <Body>
+    <GridViews>
+      <GridView>
+        <GridViewDataSource Index="0">
+        </GridViewDataSource>
+      </GridView>
+    </GridViews>
+  </Body>
+  <DataSources>
+    <DataSource>
+      <Query>
+		SELECT t.supplier_id, t.supplier, suppliers.email, suppliers.company_phone_numbers as contact_number, t.amount
+		FROM purchase.top_suppliers_view t
+		JOIN inventory.suppliers ON t.supplier_id = suppliers.supplier_id;
+      </Query>
+      <Parameters>
+      </Parameters>
+    </DataSource>
+  </DataSources>
+</FrapidReport>

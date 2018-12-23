@@ -44,7 +44,8 @@
 		SELECT row_number, item_code, item_name, quantity, sales_amount
 		FROM sales_data
 		INNER JOIN inventory.items
-		ON inventory.items.item_id = sales_data.item_id;
+		ON inventory.items.item_id = sales_data.item_id
+		ORDER BY sales_amount DESC;
       </Query>
       <Parameters>
         <Parameter Name="@OfficeId" FieldLabel="Office Id" Type="int"  DefaultValue="{Meta.OfficeId}" />

@@ -3,11 +3,11 @@
   <Header />
   <Title>Top Selling Products</Title>
   <TopSection>
-    <Charts>
-      <Chart ID="Chart1" GridViewIndex="0" HideGridView="false" Type="Pie" BorderColor="transparent" Width="400" Height="300"
-                TitleColumnIndex="2" ValueColumnIndex="4">
-      </Chart>
-    </Charts>
+    <!-- <Charts> -->
+      <!-- <Chart ID="Chart1" GridViewIndex="0" HideGridView="false" Type="Pie" BorderColor="transparent" Width="400" Height="300" -->
+                <!-- TitleColumnIndex="2" ValueColumnIndex="4"> -->
+      <!-- </Chart> -->
+    <!-- </Charts> -->
   </TopSection>
   <Body>
     <GridViews>
@@ -44,7 +44,8 @@
 		SELECT row_number, item_code, item_name, quantity, sales_amount
 		FROM sales_data
 		INNER JOIN inventory.items
-		ON inventory.items.item_id = sales_data.item_id;
+		ON inventory.items.item_id = sales_data.item_id
+		ORDER BY sales_amount DESC;
       </Query>
       <Parameters>
         <Parameter Name="@OfficeId" FieldLabel="Office Id" Type="int"  DefaultValue="{Meta.OfficeId}" />
